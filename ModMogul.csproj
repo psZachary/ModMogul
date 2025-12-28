@@ -1,0 +1,57 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net46</TargetFramework>
+    <AssemblyName>ModMogul</AssemblyName>
+    <Description>An API with hooks to make modding easier</Description>
+    <Version>0.0.1</Version>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <LangVersion>latest</LangVersion>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="BepInEx.Analyzers" Version="1.*" PrivateAssets="all" />
+    <PackageReference Include="BepInEx.Core" Version="5.*" />
+    <PackageReference Include="BepInEx.PluginInfoProps" Version="1.*" />
+  </ItemGroup>
+  
+  <ItemGroup Condition="'$(TargetFramework.TrimEnd(`0123456789`))' == 'net'">
+    <PackageReference Include="Microsoft.NETFramework.ReferenceAssemblies" Version="1.0.2" PrivateAssets="all" />
+  </ItemGroup>
+  
+  <ItemGroup>
+    <Reference Include="0Harmony">
+      <HintPath>..\..\BepInEx\core\0Harmony.dll</HintPath>
+    </Reference>
+    <Reference Include="Assembly-CSharp">
+      <HintPath>..\..\MineMogul_Data\Managed\Assembly-CSharp.dll</HintPath>
+    </Reference>
+    <Reference Include="BepInEx">
+      <HintPath>..\..\core\BepInEx.dll</HintPath>
+    </Reference>
+    <Reference Include="glTFast">
+      <HintPath>glTFast.dll</HintPath>
+    </Reference>
+    <Reference Include="glTFast.Newtonsoft">
+      <HintPath>..\..\BepInEx\plugins\ModMogul\glTFast.Newtonsoft.dll</HintPath>
+    </Reference>
+    <Reference Include="netstandard">
+      <HintPath>..\..\MineMogul_Data\Managed\netstandard.dll</HintPath>
+    </Reference>
+    <Reference Include="Newtonsoft.Json">
+      <HintPath>Newtonsoft.Json.dll</HintPath>
+    </Reference>
+    <Reference Include="UnityEngine">
+      <HintPath>..\..\MineMogul_Data\Managed\UnityEngine.dll</HintPath>
+    </Reference>
+    <Reference Include="UnityEngine.CoreModule">
+      <HintPath>..\..\MineMogul_Data\Managed\UnityEngine.CoreModule.dll</HintPath>
+    </Reference>
+    <Reference Include="UnityEngine.ImageConversionModule">
+      <HintPath>..\..\MineMogul_Data\Managed\UnityEngine.ImageConversionModule.dll</HintPath>
+    </Reference>
+    <Reference Include="UnityEngine.PhysicsModule">
+      <HintPath>..\..\MineMogul_Data\Managed\UnityEngine.PhysicsModule.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+</Project>

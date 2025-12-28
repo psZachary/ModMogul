@@ -1,0 +1,72 @@
+{
+  "Version": 1,
+  "WorkspaceRootPath": "B:\\Steam\\steamapps\\common\\MineMogul\\Makin Mods\\ModMogul\\",
+  "Documents": [
+    {
+      "AbsoluteMoniker": "D:0:0:{4E896234-9A0F-4B5E-B07B-0D12861F2B41}|ModMogul.csproj|b:\\steam\\steamapps\\common\\minemogul\\makin mods\\modmogul\\modelmaker.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{4E896234-9A0F-4B5E-B07B-0D12861F2B41}|ModMogul.csproj|solutionrelative:modelmaker.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{4E896234-9A0F-4B5E-B07B-0D12861F2B41}|ModMogul.csproj|b:\\steam\\steamapps\\common\\minemogul\\makin mods\\modmogul\\itemizer.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{4E896234-9A0F-4B5E-B07B-0D12861F2B41}|ModMogul.csproj|solutionrelative:itemizer.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{4E896234-9A0F-4B5E-B07B-0D12861F2B41}|ModMogul.csproj|b:\\steam\\steamapps\\common\\minemogul\\makin mods\\modmogul\\modmogulplugin.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{4E896234-9A0F-4B5E-B07B-0D12861F2B41}|ModMogul.csproj|solutionrelative:modmogulplugin.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    }
+  ],
+  "DocumentGroupContainers": [
+    {
+      "Orientation": 0,
+      "VerticalTabListWidth": 256,
+      "DocumentGroups": [
+        {
+          "DockedWidth": 200,
+          "SelectedChildIndex": 1,
+          "Children": [
+            {
+              "$type": "Document",
+              "DocumentIndex": 2,
+              "Title": "ModMogulPlugin.cs",
+              "DocumentMoniker": "B:\\Steam\\steamapps\\common\\MineMogul\\Makin Mods\\ModMogul\\ModMogulPlugin.cs",
+              "RelativeDocumentMoniker": "ModMogulPlugin.cs",
+              "ToolTip": "B:\\Steam\\steamapps\\common\\MineMogul\\Makin Mods\\ModMogul\\ModMogulPlugin.cs",
+              "RelativeToolTip": "ModMogulPlugin.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAABIAAAAVAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-12-27T01:23:45.641Z",
+              "IsPinned": true,
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 0,
+              "Title": "ModelMaker.cs",
+              "DocumentMoniker": "B:\\Steam\\steamapps\\common\\MineMogul\\Makin Mods\\ModMogul\\ModelMaker.cs",
+              "RelativeDocumentMoniker": "ModelMaker.cs",
+              "ToolTip": "B:\\Steam\\steamapps\\common\\MineMogul\\Makin Mods\\ModMogul\\ModelMaker.cs",
+              "RelativeToolTip": "ModelMaker.cs",
+              "ViewState": "AgIAABIAAAAAAAAAAADgv1cAAAAiAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-12-27T02:49:37.21Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 1,
+              "Title": "Itemizer.cs",
+              "DocumentMoniker": "B:\\Steam\\steamapps\\common\\MineMogul\\Makin Mods\\ModMogul\\Itemizer.cs",
+              "RelativeDocumentMoniker": "Itemizer.cs",
+              "ToolTip": "B:\\Steam\\steamapps\\common\\MineMogul\\Makin Mods\\ModMogul\\Itemizer.cs",
+              "RelativeToolTip": "Itemizer.cs",
+              "ViewState": "AgIAAI8AAAAAAAAAAAAwwLMAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-12-26T21:40:39.97Z",
+              "EditorCaption": ""
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
