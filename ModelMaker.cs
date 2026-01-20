@@ -6,7 +6,6 @@ using System.Threading.Tasks;
 using GLTFast.Logging;
 using GLTFast.Newtonsoft.Schema;
 using UnityEngine;
-using static GLTFast.Schema.MaterialBase;
 
 
 // IMPORTANT: force the Newtonsoft importer
@@ -16,6 +15,9 @@ namespace ModMogul
 {
 	public static class ModelMaker
 	{
+		[Serializable]
+		public enum MaterialType { Opaque, Fade, Cutout }
+
 		/// <summary>
 		/// Loads a GLB/GLTF from disk and instantiates its default scene under parent.
 		/// Returns true on success.
@@ -84,6 +86,7 @@ namespace ModMogul
 		public static async Task<GameObject> LoadModelToGameObjectAsync(
 			string modelPath,
 			Transform parent,
+			MaterialType materialType,
 			string childName = null,
 			CancellationToken ct = default)
 		{
@@ -102,12 +105,12 @@ namespace ModMogul
 				MeshRenderer m = rootGo.GetComponentsInChildren<MeshRenderer>()[i];
 				var _ = m.materials;
 			}
-			BindAllToStandard(glbImport, rootGo);
+			BindAllToStandard(glbImport, rootGo, materialType);
 
 			return rootGo;
 		}
 
-		public static void BindAllToStandard(GltfImport import, GameObject instantiatedRoot)
+		public static void BindAllToStandard(GltfImport import, GameObject instantiatedRoot, MaterialType materialType)
 		{
 			if (import == null || instantiatedRoot == null) return;
 
@@ -120,14 +123,13 @@ namespace ModMogul
 
 			// 1) Build Standard material for each glTF material index
 			var standardTemplate = CreateCleanStandard();
-			Debug.Log($"{standardTemplate.name} Mode={standardTemplate.GetFloat("_Mode")} MainTex={(standardTemplate.GetTexture("_MainTex") ? "yes" : "no")} ColorA={standardTemplate.GetColor("_Color").a}");
 			if (standardTemplate == null || standardTemplate.shader == null)
 			{
 				Debug.LogError("BindAllToStandard: could not create/find Standard material");
 				return;
 			}
 
-			var stdByGltfMat = BuildStandardMaterials(import, gltf, standardTemplate);
+			var stdByGltfMat = BuildStandardMaterials(import, gltf, standardTemplate, materialType);
 
 			// 2) Build lookup: nodeName -> nodeIndex
 			var nodeIndexByName = new Dictionary<string, int>(StringComparer.Ordinal);
@@ -192,9 +194,61 @@ namespace ModMogul
 					r.SetPropertyBlock(null);
 				}
 			}
+
+			// 3) For each MeshRenderer, map by name -> glTF node -> mesh -> primitives -> material indices
+			foreach (var r in instantiatedRoot.GetComponentsInChildren<SkinnedMeshRenderer>(true))
+			{
+				// Force realization (avoids your “pink until poke” issue)
+				var mats = r.materials;
+
+				// Try match renderer name to glTF node name
+				if (!nodeIndexByName.TryGetValue(r.name, out var nodeIndex))
+				{
+					// fallback: sometimes instantiated GO has "(Clone)" or extra suffix
+					var trimmed = TrimCloneSuffix(r.name);
+					if (!nodeIndexByName.TryGetValue(trimmed, out nodeIndex))
+						continue;
+				}
+
+				var node = gltf.nodes[nodeIndex];
+				//if (!node.mesh.HasValue) continue;
+
+				int meshIndex = node.mesh;
+				if (gltf.meshes == null || meshIndex < 0 || meshIndex >= gltf.meshes.Length) continue;
+
+				var mesh = gltf.meshes[meshIndex];
+				var prims = mesh.primitives;
+				if (prims == null || prims.Length == 0) continue;
+
+				// Ensure material slot count matches primitive count (Unity uses submesh/material slot)
+				if (mats == null || mats.Length != prims.Length)
+					Array.Resize(ref mats, prims.Length);
+
+				bool changed = false;
+
+				for (int slot = 0; slot < prims.Length; slot++)
+				{
+					int gltfMatIndex = prims[slot].material;
+
+					// glTF primitive material can be null; use default
+					var std = stdByGltfMat.TryGetValue(gltfMatIndex, out var mat) ? mat : stdByGltfMat[-1];
+
+					if (mats[slot] != std)
+					{
+						mats[slot] = std;
+						changed = true;
+					}
+				}
+
+				if (changed)
+				{
+					r.materials = mats;
+					r.SetPropertyBlock(null);
+				}
+			}
 		}
 
-		private static Dictionary<int, UnityEngine.Material> BuildStandardMaterials(GltfImport import, Root gltf, UnityEngine.Material template)
+		private static Dictionary<int, UnityEngine.Material> BuildStandardMaterials(GltfImport import, Root gltf, UnityEngine.Material template, MaterialType materialType)
 		{
 			var dict = new Dictionary<int, UnityEngine.Material>();
 
@@ -215,39 +269,6 @@ namespace ModMogul
 					name = string.IsNullOrEmpty(gm.name) ? $"glTF_Mat_{mi}_Standard" : $"{gm.name}_Standard"
 				};
 
-				// Transparency handling (glTF-driven; fast + correct)
-				switch (gm.GetAlphaMode())
-				{
-					case GLTFast.Schema.MaterialBase.AlphaMode.Blend:
-						SetStandardFade(m);
-						break;
-
-					case GLTFast.Schema.MaterialBase.AlphaMode.Mask:
-						SetStandardCutout(m, (float)(gm.alphaCutoff > 0 ? gm.alphaCutoff : 0.5));
-						break;
-
-					default: // OPAQUE or null
-						SetStandardOpaque(m);
-						break;
-				}
-
-				// Extra safety: if baseColorFactor alpha < 1, treat as Fade unless MASK explicitly set
-				if (pbr?.baseColorFactor != null && pbr.baseColorFactor.Length >= 4 && pbr.baseColorFactor[3] < 0.999f)
-				{
-					if (gm.GetAlphaMode() != GLTFast.Schema.MaterialBase.AlphaMode.Mask)
-						SetStandardFade(m);
-				}
-
-				if (pbr != null && m.HasProperty("_Color") && pbr.baseColorFactor != null && pbr.baseColorFactor.Length >= 4)
-				{
-					m.SetColor("_Color", new Color(
-						pbr.baseColorFactor[0],
-						pbr.baseColorFactor[1],
-						pbr.baseColorFactor[2],
-						pbr.baseColorFactor[3]
-					));
-				}
-
 				UnityEngine.Texture tex = null;
 
 				int texIndex = -1;
@@ -264,37 +285,38 @@ namespace ModMogul
 				if (tex != null && m.HasProperty("_MainTex"))
 					m.SetTexture("_MainTex", tex);
 
-				// Decide alpha based on glTF, not texture importer flags
-				bool wantsBlend = gm.GetAlphaMode() == AlphaMode.Blend;
-				bool wantsMask = gm.GetAlphaMode() == AlphaMode.Mask;
-
-				/*
-				if (wantsBlend)
-				{
-					SetStandardFade(m);
-				}
-				else if (wantsMask)
-				{
-					float cutoff = (float)(gm.alphaCutoff > 0 ? gm.alphaCutoff : 0.5);
-					SetStandardCutout(m, cutoff);
-				}
-				else
-				{
-					SetStandardOpaque(m);
-				}
-				if (pbr?.baseColorFactor != null && pbr.baseColorFactor.Length >= 4 && pbr.baseColorFactor[3] < 0.999f && !wantsMask)
-				{
-					SetStandardFade(m);
-				}
-				*/
-				SetStandardCutout(m, 0.5f);
-
 				// DoubleSided -> disable cull
 				if (gm.doubleSided)
 					m.SetInt("_Cull", (int)UnityEngine.Rendering.CullMode.Off);
 
+				// Transparency handling (glTF-driven; fast + correct)
+				switch (materialType)
+				{
+					case MaterialType.Fade:
+						ApplyBlendMaterial(m, tex);
+						//SetStandardFade(m);
+						break;
+
+					case MaterialType.Cutout:
+						SetStandardCutout(m, 0.5f);
+						break;
+
+					default: // OPAQUE or null
+						SetStandardOpaque(m);
+						break;
+				}
+
+				if (pbr != null && m.HasProperty("_Color") && pbr.baseColorFactor != null && pbr.baseColorFactor.Length >= 4)
+				{
+					m.SetColor("_Color", new Color(
+						pbr.baseColorFactor[0],
+						pbr.baseColorFactor[1],
+						pbr.baseColorFactor[2],
+						pbr.baseColorFactor[3]
+					));
+				}
+
 				dict[mi] = m;
-				Debug.Log($"[MatBuilt] {m.name} Mode={m.GetFloat("_Mode")} MainTex={(m.GetTexture("_MainTex") ? "yes" : "no")} ColorA={m.GetColor("_Color").a}");
 			}
 
 			return dict;
@@ -379,6 +401,63 @@ namespace ModMogul
 			m.EnableKeyword("_ALPHABLEND_ON");
 			m.DisableKeyword("_ALPHAPREMULTIPLY_ON");
 			m.renderQueue = (int)UnityEngine.Rendering.RenderQueue.Transparent;
+		}
+
+		static Shader FindFirst(params string[] names)
+		{
+			foreach (var n in names)
+			{
+				var s = Shader.Find(n);
+				if (s != null) return s;
+			}
+			return null;
+		}
+
+		static void ApplyBlendMaterial(UnityEngine.Material m, UnityEngine.Texture mainTex)
+		{
+			// Try Standard Fade first
+			var standard = Shader.Find("Standard");
+			if (standard != null)
+			{
+				m.shader = standard;
+				if (m.HasProperty("_MainTex")) m.SetTexture("_MainTex", mainTex);
+				SetStandardFade(m);
+
+				// Heuristic: if keyword sticks, assume it works. (Not foolproof, but cheap.)
+				if (m.IsKeywordEnabled("_ALPHABLEND_ON"))
+					return;
+			}
+
+			// Try any available transparent shader
+			var transparent = FindFirst(
+				"Unlit/Transparent",
+				"Legacy Shaders/Transparent/Diffuse",
+				"Legacy Shaders/Transparent/VertexLit",
+				"Particles/Standard Unlit",
+				"Sprites/Default"
+			);
+
+			if (transparent != null)
+			{
+				m.shader = transparent;
+
+				// Common property name for these
+				if (m.HasProperty("_MainTex")) m.SetTexture("_MainTex", mainTex);
+				if (m.HasProperty("_Color"))
+				{
+					var c = m.GetColor("_Color");
+					c.a = 1f; // texture alpha drives
+					m.SetColor("_Color", c);
+				}
+
+				// For many transparent shaders, renderQueue helps
+				m.renderQueue = (int)UnityEngine.Rendering.RenderQueue.Transparent;
+				return;
+			}
+
+			// Last resort: cutout
+			SetStandardCutout(m, 0.5f);
+			if (m.HasProperty("_MainTex")) m.SetTexture("_MainTex", mainTex);
 		}
 	}
 }

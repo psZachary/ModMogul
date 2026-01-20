@@ -1,29 +1,28 @@
 ﻿using HarmonyLib;
-using StbImageSharp;
 using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 namespace ModMogul
 {
 	public static class Itemizer
 	{
+
+		[Serializable]
 		public struct ItemSpec
 		{
-			public readonly int BlockID;
-			public readonly string InternalName;
-			public readonly string DisplayName;
-			public readonly string Description;
-			public readonly int Price;
-			public readonly string ShopCategory;
-			public readonly int MaxStackSize;
-			public readonly bool IsLockedByDefault;
-			public readonly string QFunction;
-
-			// NOTE: structs are value types; keep this as a normal field so we can set it in the overload.
-			public string iconPath;
+			public int BlockID;
+			public string InternalName;
+			public string DisplayName;
+			public string Description;
+			public int Price;
+			public string ShopCategory;
+			public int MaxStackSize;
+			public bool IsLockedByDefault;
+			public string QFunction;
+			public string IconPath;
 
 			public ItemSpec(
 				int blockID,
@@ -45,7 +44,7 @@ namespace ModMogul
 				MaxStackSize = maxStackSize;
 				IsLockedByDefault = isLockedByDefault;
 				QFunction = qFunction;
-				iconPath = null;
+				IconPath = null;
 			}
 		}
 
@@ -67,6 +66,26 @@ namespace ModMogul
 		private static readonly HashSet<int> _injectedEconomyIds = new();
 
 		private static EconomyManager _lastEconomy;
+		private static GameObject prefabHolder;
+
+		[HarmonyPatch(typeof(EconomyManager), "Start")]
+		private static class Patch_EconomyManager_Start_Postfix
+		{
+			private static void Postfix(EconomyManager __instance)
+			{
+				Debug.Log("[ModMogul.Itemizer] Injecting Custom Items into EconomyManager");
+				Itemizer.TryInjectAllIntoEconomy(__instance);
+			}
+		}
+
+		[HarmonyPatch(typeof(BuildingObject), nameof(BuildingObject.Start))]
+		internal static class Patch_BuildingObject_Start_Prefix
+		{
+			static bool Prefix()
+			{
+				return SceneManager.GetActiveScene().name.ToLower() == "gameplay";
+			}
+		}
 
 		public static BuildingObject RegisterItem(ItemSpec spec)
 		{
@@ -89,6 +108,7 @@ namespace ModMogul
 			var econ = _lastEconomy ?? Singleton<EconomyManager>.Instance;
 			if (econ != null)
 				TryInjectAllIntoEconomy(econ);
+			RegisterWithSaveLoadManager(rt.Prefab.gameObject);
 
 			return rt.Prefab;
 		}
@@ -99,7 +119,7 @@ namespace ModMogul
 
 			// IMPORTANT: ItemSpec is a struct (value type). We set the field on this local copy,
 			// then store the whole struct into rt.Spec so the iconPath persists per-item.
-			spec.iconPath = iconPath;
+			spec.IconPath = iconPath;
 
 			ItemRuntime rt;
 			lock (_lock)
@@ -118,8 +138,14 @@ namespace ModMogul
 			var econ = _lastEconomy ?? Singleton<EconomyManager>.Instance;
 			if (econ != null)
 				TryInjectAllIntoEconomy(econ);
+			RegisterWithSaveLoadManager(rt.Prefab.gameObject);
 
 			return rt.Prefab;
+		}
+
+		private static void RegisterWithSaveLoadManager(GameObject savableObjectPrefab)
+		{
+			GameObject.FindFirstObjectByType<SavingLoadingManager>().AllSavableObjectPrefabs.Add(savableObjectPrefab);
 		}
 
 		private static void ValidateSpec(ItemSpec spec)
@@ -137,16 +163,13 @@ namespace ModMogul
 			if (existing != null) return existing;
 
 			var go = new GameObject(internalName + "_BuildingPrefab");
-			var prefab = go.AddComponent<BuildingObject>();
 
 			// Required children the game expects
 			var placement = new GameObject("BuildingPlacementColliderObject");
 			placement.transform.SetParent(go.transform, false);
-			prefab.BuildingPlacementColliderObject = placement;
 
 			var spawn = new GameObject("BuildingCrateSpawnPoint");
 			spawn.transform.SetParent(go.transform, false);
-			prefab.BuildingCrateSpawnPoint = spawn.transform;
 
 			// Minimal visible geometry by default (modders can replace)
 			var prim = GameObject.CreatePrimitive(PrimitiveType.Cube);
@@ -159,22 +182,35 @@ namespace ModMogul
 			UnityEngine.Object.Destroy(prim);
 
 			// Colliders
-			var mainCol = go.GetComponent<BoxCollider>() ?? go.AddComponent<BoxCollider>();
-			mainCol.size *= 0.99f;
+			//var mainCol = go.GetComponent<BoxCollider>() ?? go.AddComponent<BoxCollider>();
+			//mainCol.size *= 0.99f;
 
-			var placementCol = placement.GetComponent<BoxCollider>() ?? placement.AddComponent<BoxCollider>();
-			placementCol.size *= 0.99f;
+			//var placementCol = placement.GetComponent<BoxCollider>() ?? placement.AddComponent<BoxCollider>();
+			//placementCol.size *= 0.99f;
 
 			// Keep inert and out of view
-			go.transform.position = Vector3.up * -1000f;
-			UnityEngine.Object.DontDestroyOnLoad(go);
-			go.hideFlags = HideFlags.HideAndDontSave;
+			//go.transform.position = Vector3.up * -1000f;
+			//UnityEngine.Object.DontDestroyOnLoad(go);
+			//go.hideFlags = HideFlags.HideAndDontSave;
 
+			if (prefabHolder == null)
+			{
+				prefabHolder = new GameObject("Itemizer_PrefabHolder");
+				prefabHolder.transform.position = -Vector3.up * 1000;
+				UnityEngine.Object.DontDestroyOnLoad(prefabHolder);
+				prefabHolder.hideFlags = HideFlags.HideAndDontSave;
+				prefabHolder.SetActive(false);
+			}
+
+			go.transform.parent = prefabHolder.transform;
+
+			var prefab = go.AddComponent<BuildingObject>();
 			prefab.SavableObjectID = (SavableObjectID)blockID;
+			prefab.BuildingPlacementColliderObject = placement;
+			prefab.BuildingCrateSpawnPoint = spawn.transform;
 
 			// Safe to attempt; may no-op if SavingLoadingManager not ready yet
 			RegisterSavableLookupIfPossible(blockID, prefab);
-
 			return prefab;
 		}
 
@@ -209,7 +245,7 @@ namespace ModMogul
 				}
 				catch (Exception e)
 				{
-					Debug.LogError($"[ModMogul.Itemizer] Inject failed for {rt?.Spec.InternalName} ({rt?.Spec.BlockID}): {e}");
+					Debug.LogError($"[ModMogul.Itemizer] Inject into EconomyManager failed for {rt?.Spec.InternalName} ({rt?.Spec.BlockID}): {e}");
 				}
 			}
 		}
@@ -226,6 +262,7 @@ namespace ModMogul
 				rt.Def = ScriptableObject.CreateInstance<BuildingInventoryDefinition>();
 				rt.Def.name = s.InternalName + "_Definition";
 				UnityEngine.Object.DontDestroyOnLoad(rt.Def);
+				rt.Def.hideFlags = HideFlags.HideAndDontSave;
 
 				rt.Def.Name = s.DisplayName;
 				rt.Def.Description = s.Description;
@@ -235,8 +272,8 @@ namespace ModMogul
 				rt.Def.BuildingPrefabs = new List<BuildingObject> { rt.Prefab };
 
 				// Use the per-item iconPath stored in rt.Spec
-				rt.Def.InventoryIcon = ImportIconSprite(s.iconPath);
-				rt.Def.ProgrammerInventoryIcon = ImportIconSprite(s.iconPath);
+				rt.Def.InventoryIcon = Utility.ImportSprite(s.IconPath);
+				rt.Def.ProgrammerInventoryIcon = Utility.ImportSprite(s.IconPath);
 
 				rt.Def.PackedPrefab = GetABuildingCrate(allCats);
 				rt.Def.UseReverseRotationDirection = false;
@@ -253,6 +290,7 @@ namespace ModMogul
 				rt.ShopItemDef = ScriptableObject.CreateInstance<ShopItemDefinition>();
 				rt.ShopItemDef.name = s.InternalName + "_ShopItem";
 				UnityEngine.Object.DontDestroyOnLoad(rt.ShopItemDef);
+				rt.ShopItemDef.hideFlags = HideFlags.HideAndDontSave;
 
 				rt.ShopItemDef.UseNameAndDescriptionOfBuildingDefinition = true;
 				rt.ShopItemDef.BuildingInventoryDefinition = rt.Def;
@@ -333,73 +371,6 @@ namespace ModMogul
 			if (lookup == null) return;
 
 			lookup[(SavableObjectID)blockID] = prefab.gameObject;
-		}
-
-		static Sprite GenerateFallbackSprite()
-		{
-			Texture2D texture = new Texture2D(4, 4, TextureFormat.RGBA32, false, false);
-			texture.filterMode = FilterMode.Point;
-			texture.wrapMode = TextureWrapMode.Clamp;
-
-			Color[] pixels = new Color[4 * 4];
-			for (int y = 0; y < 4; y++)
-				for (int x = 0; x < 4; x++)
-					pixels[y * 4 + x] = ((x % 2 == 0) ^ (y % 2 == 0)) ? Color.pink : Color.black;
-
-			texture.SetPixels(pixels);
-			texture.Apply(false, false);
-
-			return Sprite.Create(texture, new Rect(0, 0, 4, 4), new Vector2(0.5f, 0.5f), 100f);
-		}
-
-		static Sprite ImportIconSprite(string iconPath)
-		{
-			// Correct order: check null/empty BEFORE File.Exists
-			if (string.IsNullOrEmpty(iconPath))
-				return GenerateFallbackSprite();
-
-			if (!File.Exists(iconPath))
-			{
-				Debug.LogError("File not found: " + iconPath);
-				return GenerateFallbackSprite();
-			}
-
-			byte[] data = File.ReadAllBytes(iconPath);
-
-			var img = ImageResult.FromMemory(data, ColorComponents.RedGreenBlueAlpha);
-
-			var tex = new Texture2D(img.Width, img.Height, TextureFormat.RGBA32, mipChain: false, linear: false);
-			tex.filterMode = FilterMode.Point;
-			tex.wrapMode = TextureWrapMode.Clamp;
-
-			// Convert RGBA bytes -> Color32[]
-			var pixels = new Color32[img.Width * img.Height];
-			var src = img.Data;
-			for (int i = 0, p = 0; i < pixels.Length; i++, p += 4)
-				pixels[i] = new Color32(src[p], src[p + 1], src[p + 2], src[p + 3]);
-
-			FlipVertically(pixels, img.Width, img.Height);
-
-			tex.SetPixels32(pixels);
-			tex.Apply(false, false);
-
-			return Sprite.Create(tex, new Rect(0, 0, tex.width, tex.height), new Vector2(0.5f, 0.5f), 100f);
-		}
-
-		static void FlipVertically(Color32[] pixels, int width, int height)
-		{
-			int row = width;
-			for (int y = 0; y < height / 2; y++)
-			{
-				int top = y * row;
-				int bottom = (height - 1 - y) * row;
-				for (int x = 0; x < row; x++)
-				{
-					var tmp = pixels[top + x];
-					pixels[top + x] = pixels[bottom + x];
-					pixels[bottom + x] = tmp;
-				}
-			}
 		}
 
 		private static BuildingCrate GetABuildingCrate(List<ShopCategory> allCats)
