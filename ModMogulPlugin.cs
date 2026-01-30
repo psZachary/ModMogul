@@ -1,7 +1,6 @@
 ﻿using BepInEx;
 using HarmonyLib;
 using System.Collections;
-using System.Collections.Generic;
 using System.IO;
 using TMPro;
 using UnityEngine;
@@ -10,14 +9,23 @@ using UnityEngine.UI;
 
 namespace ModMogul
 {
-	[BepInPlugin("modmogul.core", "Mod Mogul", "0.3.2")]
+	[BepInPlugin("modmogul.core", "Mod Mogul", "0.4.0")]
 	public class ModMogulPlugin : BaseUnityPlugin
 	{
 		static SettingsSetter _settingsSetter;
+		public static Shader fadeShader;
 
 		private void Start ()
 		{
 			new Harmony("modmogul.core").PatchAll();
+
+			string assetPath = Path.Combine(
+									Paths.PluginPath,   // BepInEx/plugins
+									"ModMogul",
+									"modmogul.assets");
+			AssetBundle bundle = AssetBundle.LoadFromFile(assetPath);
+			fadeShader = bundle.LoadAsset<Shader>("Fade");
+
 			StartCoroutine(WaitForMenu());
 			_settingsSetter = gameObject.AddComponent<SettingsSetter>();
 		}

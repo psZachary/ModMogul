@@ -1,0 +1,7 @@
+{
+	"name": "Mod_Mogul",
+	"version_number": "0.4.0",
+	"website_url": "",
+	"description": "A library that allows mod making to mostly be one line calls",
+	"dependencies": []
+}

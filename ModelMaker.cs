@@ -392,6 +392,8 @@ namespace ModMogul
 
 		static void SetStandardFade(UnityEngine.Material m)
 		{
+			m.shader = ModMogulPlugin.fadeShader;
+			/*
 			m.SetOverrideTag("RenderType", "Transparent");
 			m.SetFloat("_Mode", 2f);
 			m.SetInt("_SrcBlend", (int)UnityEngine.Rendering.BlendMode.SrcAlpha);
@@ -401,6 +403,7 @@ namespace ModMogul
 			m.EnableKeyword("_ALPHABLEND_ON");
 			m.DisableKeyword("_ALPHAPREMULTIPLY_ON");
 			m.renderQueue = (int)UnityEngine.Rendering.RenderQueue.Transparent;
+			*/
 		}
 
 		static Shader FindFirst(params string[] names)

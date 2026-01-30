@@ -3,7 +3,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
-using UnityEngine.SceneManagement;
 
 namespace ModMogul
 {
@@ -74,16 +73,7 @@ namespace ModMogul
 			private static void Postfix(EconomyManager __instance)
 			{
 				Debug.Log("[ModMogul.Itemizer] Injecting Custom Items into EconomyManager");
-				Itemizer.TryInjectAllIntoEconomy(__instance);
-			}
-		}
-
-		[HarmonyPatch(typeof(BuildingObject), nameof(BuildingObject.Start))]
-		internal static class Patch_BuildingObject_Start_Prefix
-		{
-			static bool Prefix()
-			{
-				return SceneManager.GetActiveScene().name.ToLower() == "gameplay";
+				TryInjectAllIntoEconomy(__instance);
 			}
 		}
 
