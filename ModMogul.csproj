@@ -21,52 +21,52 @@
   
   <ItemGroup>
     <Reference Include="0Harmony">
-      <HintPath>..\..\BepInEx\core\0Harmony.dll</HintPath>
+      <HintPath>Assemblies\0Harmony.dll</HintPath>
     </Reference>
     <Reference Include="Assembly-CSharp">
-      <HintPath>..\..\MineMogul_Data\Managed\Assembly-CSharp.dll</HintPath>
+      <HintPath>Assemblies\Assembly-CSharp.dll</HintPath>
     </Reference>
     <Reference Include="BepInEx">
-      <HintPath>..\..\core\BepInEx.dll</HintPath>
+      <HintPath>Assemblies\BepInEx.dll</HintPath>
     </Reference>
     <Reference Include="glTFast">
-      <HintPath>glTFast.dll</HintPath>
+      <HintPath>Assemblies\glTFast.dll</HintPath>
     </Reference>
     <Reference Include="glTFast.Newtonsoft">
-      <HintPath>..\..\BepInEx\plugins\ModMogul\glTFast.Newtonsoft.dll</HintPath>
+      <HintPath>Assemblies\glTFast.Newtonsoft.dll</HintPath>
     </Reference>
     <Reference Include="netstandard">
-      <HintPath>..\..\MineMogul_Data\Managed\netstandard.dll</HintPath>
+      <HintPath>Assemblies\netstandard.dll</HintPath>
     </Reference>
     <Reference Include="Newtonsoft.Json">
-      <HintPath>Newtonsoft.Json.dll</HintPath>
+      <HintPath>Assemblies\Newtonsoft.Json.dll</HintPath>
     </Reference>
     <Reference Include="Unity.TextMeshPro">
-      <HintPath>..\..\MineMogul_Data\Managed\Unity.TextMeshPro.dll</HintPath>
+      <HintPath>Dependencies\Unity.TextMeshPro.dll</HintPath>
     </Reference>
     <Reference Include="UnityEngine">
-      <HintPath>..\..\MineMogul_Data\Managed\UnityEngine.dll</HintPath>
+      <HintPath>Assemblies\UnityEngine.dll</HintPath>
     </Reference>
     <Reference Include="UnityEngine.AssetBundleModule">
-      <HintPath>..\..\MineMogul_Data\Managed\UnityEngine.AssetBundleModule.dll</HintPath>
+      <HintPath>Assemblies\UnityEngine.AssetBundleModule.dll</HintPath>
     </Reference>
     <Reference Include="UnityEngine.CoreModule">
-      <HintPath>..\..\MineMogul_Data\Managed\UnityEngine.CoreModule.dll</HintPath>
+      <HintPath>Assemblies\UnityEngine.CoreModule.dll</HintPath>
     </Reference>
     <Reference Include="UnityEngine.ImageConversionModule">
-      <HintPath>..\..\MineMogul_Data\Managed\UnityEngine.ImageConversionModule.dll</HintPath>
+      <HintPath>Assemblies\UnityEngine.ImageConversionModule.dll</HintPath>
     </Reference>
     <Reference Include="UnityEngine.PhysicsModule">
-      <HintPath>..\..\MineMogul_Data\Managed\UnityEngine.PhysicsModule.dll</HintPath>
+      <HintPath>Assemblies\UnityEngine.PhysicsModule.dll</HintPath>
     </Reference>
     <Reference Include="UnityEngine.UI">
-      <HintPath>..\..\MineMogul_Data\Managed\UnityEngine.UI.dll</HintPath>
+      <HintPath>Assemblies\UnityEngine.UI.dll</HintPath>
     </Reference>
     <Reference Include="UnityEngine.UIElementsModule">
-      <HintPath>..\..\MineMogul_Data\Managed\UnityEngine.UIElementsModule.dll</HintPath>
+      <HintPath>Assemblies\UnityEngine.UIElementsModule.dll</HintPath>
     </Reference>
     <Reference Include="UnityEngine.UIModule">
-      <HintPath>..\..\MineMogul_Data\Managed\UnityEngine.UIModule.dll</HintPath>
+      <HintPath>Assemblies\UnityEngine.UIModule.dll</HintPath>
     </Reference>
   </ItemGroup>
 </Project>

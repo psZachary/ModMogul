@@ -625,25 +625,20 @@
     ]
   },
   "packageFolders": {
-    "C:\\Users\\rage9\\.nuget\\packages\\": {},
-    "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages": {}
+    "C:\\Users\\newus\\.nuget\\packages\\": {}
   },
   "project": {
     "version": "0.3.1",
     "restore": {
-      "projectUniqueName": "B:\\Steam\\steamapps\\common\\MineMogul\\Makin Mods\\ModMogul\\ModMogul.csproj",
+      "projectUniqueName": "D:\\repos\\ModMogul\\ModMogul\\ModMogul.csproj",
       "projectName": "ModMogul",
-      "projectPath": "B:\\Steam\\steamapps\\common\\MineMogul\\Makin Mods\\ModMogul\\ModMogul.csproj",
-      "packagesPath": "C:\\Users\\rage9\\.nuget\\packages\\",
-      "outputPath": "B:\\Steam\\steamapps\\common\\MineMogul\\Makin Mods\\ModMogul\\obj\\",
+      "projectPath": "D:\\repos\\ModMogul\\ModMogul\\ModMogul.csproj",
+      "packagesPath": "C:\\Users\\newus\\.nuget\\packages\\",
+      "outputPath": "D:\\repos\\ModMogul\\ModMogul\\obj\\",
       "projectStyle": "PackageReference",
-      "fallbackFolders": [
-        "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
-      ],
       "configFilePaths": [
-        "B:\\Steam\\steamapps\\common\\MineMogul\\Makin Mods\\ModMogul\\NuGet.Config",
-        "C:\\Users\\rage9\\AppData\\Roaming\\NuGet\\NuGet.Config",
-        "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.FallbackLocation.config",
+        "D:\\repos\\ModMogul\\ModMogul\\NuGet.Config",
+        "C:\\Users\\newus\\AppData\\Roaming\\NuGet\\NuGet.Config",
         "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
       ],
       "originalTargetFrameworks": [
@@ -670,7 +665,7 @@
         "auditLevel": "low",
         "auditMode": "direct"
       },
-      "SdkAnalysisLevel": "9.0.100"
+      "SdkAnalysisLevel": "10.0.100"
     },
     "frameworks": {
       "net46": {
@@ -695,7 +690,7 @@
             "version": "[1.0.2, )"
           }
         },
-        "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\9.0.102\\RuntimeIdentifierGraph.json"
+        "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\10.0.102\\RuntimeIdentifierGraph.json"
       }
     }
   }

@@ -1,6 +1,6 @@
 is_global = true
 build_property.RootNamespace = ModMogul
-build_property.ProjectDir = B:\Steam\steamapps\common\MineMogul\Makin Mods\ModMogul\
+build_property.ProjectDir = D:\repos\ModMogul\ModMogul\
 build_property.EnableComHosting = 
 build_property.EnableGeneratedComInterfaceComImportInterop = 
 build_property.CsWinRTUseWindowsUIXamlProjections = false
